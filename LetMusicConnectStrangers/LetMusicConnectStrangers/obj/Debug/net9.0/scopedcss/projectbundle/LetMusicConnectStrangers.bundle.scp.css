@@ -1,0 +1,49 @@
+/* _content/LetMusicConnectStrangers/Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-lzogcok2yl] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-lzogcok2yl] {
+  color: #0077cc;
+}
+
+.btn-primary[b-lzogcok2yl] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-lzogcok2yl], .nav-pills .show > .nav-link[b-lzogcok2yl] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-lzogcok2yl] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-lzogcok2yl] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-lzogcok2yl] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-lzogcok2yl] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-lzogcok2yl] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
