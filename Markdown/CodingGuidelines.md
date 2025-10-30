@@ -1,5 +1,9 @@
 # Here is a breakdown of coding guidelines this project will try to best follow (May mess it up a bit by accident but i hope to catch it and fix it fast.) Again everything listed is for this project specifically.
 
+## Structure
+
+![PlanFlowchart](Plan.png)
+
 ## Creating Issues
 - Write a title with a descriptive description to prevent any confusion for others to understand
 
