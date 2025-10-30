@@ -5,8 +5,8 @@
    - Track
    - Review
    - Recommendation
-   - SpotifyToken
-   - AppleMusicToken
+   - SpotifyToken (TBD)
+   - AppleMusicToken (TBD)
      
 - Login/Register
 - CRUD (Create, Read, Update, Delete) functionality with Entity Framework Core
