@@ -1,9 +1,9 @@
 # LetMusicConnectStrangers
-A website where users can connect to a Spotify or Apple Music account (This may change to just Spotify later based on how difficult the Apple API is) and view their music stats and top songs, Leave reviews on their favorite songs, or explore new songs based on their preferences. This website may also allow users to share reviews and create playlists. 
+A website where users can connect to a Spotify or Apple Music account (This mmay change to just Spotify later based on how difficult the Apple API is) and view their music stats and top songs, Leave reviews on their favorite songs, or explore new songs based on their preferences. This website may also allow users to share reviews and create playlists. 
 
 ## Upcoming Features 
 
-[Click here to read more about the features](Markdown/UpcomingFeatures.md)
+To be added in the future
 
 ## How to get started
 - Clone or download the repository
@@ -20,7 +20,7 @@ A website where users can connect to a Spotify or Apple Music account (This may 
 
 ## My Coding Guidelines
 
-[Coding Guidelines](Markdown/CodingGuidelines.md)
+To be added
 
 ## Team
 - Coding and Editing by Adelise Ferris
