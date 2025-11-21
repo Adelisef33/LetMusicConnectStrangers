@@ -1,4 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using LetMusicConnectStrangers.Data;
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("LetMusicConnectStrangersContextConnection") ?? throw new InvalidOperationException("Connection string 'LetMusicConnectStrangersContextConnection' not found.");;
+
+builder.Services.AddDbContext<LetMusicConnectStrangersContext>(options => options.UseSqlServer(connectionString));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<LetMusicConnectStrangersContext>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -14,8 +22,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -25,5 +35,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+// Make Area Identity Razor Pages reachable
+app.MapRazorPages();
 
 app.Run();

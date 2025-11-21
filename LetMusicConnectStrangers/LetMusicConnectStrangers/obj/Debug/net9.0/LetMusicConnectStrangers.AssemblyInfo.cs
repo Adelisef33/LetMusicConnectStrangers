@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4abe731506cd5d566ebbb5c9fe6fe7cfce02f1a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a0860480d053b67f72d23094978bc40282353f38")]
 [assembly: System.Reflection.AssemblyProductAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
