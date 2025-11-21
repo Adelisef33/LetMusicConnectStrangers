@@ -61,8 +61,6 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\css\site.css
-C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\favicon.ico
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\js\site.js
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
@@ -123,3 +121,5 @@ C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\Le
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\lib\jquery\dist\jquery.slim.min.js
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\lib\jquery\dist\jquery.slim.min.map
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\lib\jquery\LICENSE.txt
+C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\favicon.ico
+C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\wwwroot\css\site.css
