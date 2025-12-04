@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f9881c52bd7fad9d8c54d6b6805960f88dc9f7cc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+785d3298d10fc14fda0a4d6a488dbea34053ff6a")]
 [assembly: System.Reflection.AssemblyProductAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LetMusicConnectStrangers")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

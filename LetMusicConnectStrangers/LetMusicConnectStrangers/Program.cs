@@ -6,33 +6,30 @@ using LetMusicConnectStrangers.Services;
 using AspNet.Security.OAuth.Spotify;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography.X509Certificates;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load mkcert certificate that covers localhost and 127.0.0.1
+// Load mkcert certificate that covers 127.0.0.1
 var certPath = Path.Combine(builder.Environment.ContentRootPath, "certificate.pfx");
-var certPassword = builder.Configuration["HttpsCertificatePassword"] ?? "changeit";
+var certPassword = builder.Configuration["CertificatePassword"] ?? "changeit";
 
-X509Certificate2? httpsCert = null;
-if (File.Exists(certPath))
-{
-    httpsCert = new X509Certificate2(certPath, certPassword);
-    Console.WriteLine("[HTTPS] Loaded mkcert certificate");
-}
-
-// Configure Kestrel to listen on 127.0.0.1:3000
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Listen(IPAddress.Parse("127.0.0.1"), 3000, listenOptions =>
     {
-        if (httpsCert != null)
-            listenOptions.UseHttps(httpsCert);
+        if (File.Exists(certPath))
+        {
+            var cert = new X509Certificate2(certPath, certPassword);
+            listenOptions.UseHttps(cert);
+        }
         else
-            listenOptions.UseHttps();
+        {
+            throw new FileNotFoundException($"Certificate not found at {certPath}. Run: mkcert -pkcs12 -p12-file certificate.pfx 127.0.0.1 localhost");
+        }
     });
 });
 
@@ -57,30 +54,8 @@ builder.Services.AddAuthentication()
         options.Scope.Add("user-library-read");
         options.Scope.Add("playlist-read-private");
 
-        // Set correlation cookie settings
         options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-
-        // Force redirect_uri to use 127.0.0.1 - replace both encoded and non-encoded versions
-        options.Events = new OAuthEvents
-        {
-            OnRedirectToAuthorizationEndpoint = ctx =>
-            {
-                var uri = ctx.RedirectUri;
-                
-                // Replace URL-encoded localhost (%3A%2F%2Flocalhost%3A)
-                uri = uri.Replace("%3A%2F%2Flocalhost%3A", "%3A%2F%2F127.0.0.1%3A");
-                
-                // Also replace non-encoded version just in case
-                uri = uri.Replace("://localhost:", "://127.0.0.1:");
-                
-                Console.WriteLine($"[SpotifyAuth] Original: {ctx.RedirectUri}");
-                Console.WriteLine($"[SpotifyAuth] Modified: {uri}");
-                
-                ctx.Response.Redirect(uri);
-                return Task.CompletedTask;
-            }
-        };
     });
 
 builder.Services.AddScoped<SpotifyService>();
