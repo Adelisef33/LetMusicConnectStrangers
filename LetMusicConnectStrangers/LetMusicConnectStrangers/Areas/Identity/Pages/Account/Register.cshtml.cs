@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
@@ -18,22 +19,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using LetMusicConnectStrangers.Models;
 
 namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserStore<ApplicationUser> _userStore;
+        private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            IUserStore<ApplicationUser> userStore,
+            SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
@@ -63,6 +65,12 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
+
+        [TempData]
+        public string SpotifyEmail { get; set; }
+
+        [TempData]
+        public string SpotifyDisplayName { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -100,27 +108,77 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
         }
 
 
-        public async Task OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
+            // Check if user is returning from Spotify authentication
+            var result = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            
+            if (result?.Succeeded == true && result.Principal != null)
+            {
+                var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+                var name = result.Principal.FindFirstValue(ClaimTypes.Name);
+                
+                if (!string.IsNullOrEmpty(email))
+                {
+                    SpotifyEmail = email;
+                    SpotifyDisplayName = name;
+                }
+            }
+            
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            
+            // Verify Spotify authentication
+            var externalLoginInfo = await _signInManager.GetExternalLoginInfoAsync();
+            if (externalLoginInfo == null || externalLoginInfo.LoginProvider != "Spotify")
+            {
+                ModelState.AddModelError(string.Empty, "You must authenticate with Spotify before registering.");
+                return Page();
+            }
+
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                
+                // Store Spotify information
+                user.SpotifyId = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                user.SpotifyDisplayName = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name);
+                
+                // Get tokens if available
+                if (externalLoginInfo.AuthenticationTokens != null)
+                {
+                    user.SpotifyAccessToken = externalLoginInfo.AuthenticationTokens.FirstOrDefault(t => t.Name == "access_token")?.Value;
+                    user.SpotifyRefreshToken = externalLoginInfo.AuthenticationTokens.FirstOrDefault(t => t.Name == "refresh_token")?.Value;
+                    
+                    var expiresIn = externalLoginInfo.AuthenticationTokens.FirstOrDefault(t => t.Name == "expires_in")?.Value;
+                    if (!string.IsNullOrEmpty(expiresIn) && int.TryParse(expiresIn, out int seconds))
+                    {
+                        user.SpotifyTokenExpiration = DateTime.UtcNow.AddSeconds(seconds);
+                    }
+                }
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    _logger.LogInformation("User created a new account with password and Spotify.");
+
+                    // Add external login
+                    var addLoginResult = await _userManager.AddLoginAsync(user, externalLoginInfo);
+                    if (!addLoginResult.Succeeded)
+                    {
+                        _logger.LogWarning("Failed to add Spotify login to user.");
+                    }
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -140,7 +198,7 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        await _signInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
                         return LocalRedirect(returnUrl);
                     }
                 }
@@ -154,27 +212,27 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private IdentityUser CreateUser()
+        private ApplicationUser CreateUser()
         {
             try
             {
-                return Activator.CreateInstance<IdentityUser>();
+                return Activator.CreateInstance<ApplicationUser>();
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<ApplicationUser> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<ApplicationUser>)_userStore;
         }
     }
 }

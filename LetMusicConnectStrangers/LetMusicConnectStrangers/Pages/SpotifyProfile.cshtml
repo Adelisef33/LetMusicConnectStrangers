@@ -1,0 +1,103 @@
+@page
+@model LetMusicConnectStrangers.Pages.SpotifyProfileModel
+@{
+    ViewData["Title"] = "My Spotify Profile";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning">
+        @Model.ErrorMessage
+        @if (!Model.HasSpotifyConnection)
+        {
+            <p class="mt-2">
+                <a href="/Identity/Account/Manage" class="btn btn-success">Connect Spotify Account</a>
+            </p>
+        }
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Spotify Account</h5>
+                    <p><strong>Display Name:</strong> @Model.SpotifyDisplayName</p>
+                    <p><strong>Spotify ID:</strong> @Model.SpotifyId</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Top Tracks</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopTracks.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var track in Model.TopTracks)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@track.Name</h6>
+                                    </div>
+                                    <p class="mb-1 text-muted">
+                                        @string.Join(", ", track.Artists.Select(a => a.Name))
+                                    </p>
+                                    <small class="text-muted">@track.Album.Name</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No top tracks found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Top Artists</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopArtists.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var artist in Model.TopArtists)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">@artist.Name</h6>
+                                        <span class="badge bg-secondary">@artist.Followers.Total followers</span>
+                                    </div>
+                                    @if (artist.Genres?.Any() == true)
+                                    {
+                                        <p class="mb-0">
+                                            <small class="text-muted">
+                                                @string.Join(", ", artist.Genres.Take(3))
+                                            </small>
+                                        </p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No top artists found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
