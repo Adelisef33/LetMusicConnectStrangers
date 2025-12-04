@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using LetMusicConnectStrangers.Models;
 
 namespace LetMusicConnectStrangers.Data;
 
-public class LetMusicConnectStrangersContext : IdentityDbContext<IdentityUser>
+public class LetMusicConnectStrangersContext : IdentityDbContext<ApplicationUser>
 {
     public LetMusicConnectStrangersContext(DbContextOptions<LetMusicConnectStrangersContext> options)
         : base(options)
