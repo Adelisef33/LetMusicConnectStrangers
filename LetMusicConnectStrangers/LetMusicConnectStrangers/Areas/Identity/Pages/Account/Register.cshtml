@@ -4,34 +4,142 @@
     ViewData["Title"] = "Register";
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .register-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        padding: 2rem;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 2rem;
+    }
+    
+    .register-card h2, .register-card h4 {
+        color: #191414;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-spotify-connect {
+        background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);
+        border: none;
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+    }
+    
+    .alert-spotify-connect h4 {
+        color: white;
+        font-weight: 700;
+    }
+    
+    .alert-success-custom {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-success-custom h4 {
+        color: #155724;
+    }
+    
+    .btn-spotify {
+        background: white;
+        color: #1DB954;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-spotify:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        background: #f0f0f0;
+        color: #1DB954;
+    }
+    
+    .btn-primary-custom {
+        background: #1DB954;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+        width: 100%;
+    }
+    
+    .btn-primary-custom:hover {
+        background: #169c46;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .step-indicator {
+        display: inline-block;
+        background: #191414;
+        color: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        text-align: center;
+        font-weight: 700;
+        margin-right: 0.5rem;
+    }
+</style>
 
-<div class="row">
-    <div class="col-md-12">
+<div class="page-header">
+    <h1 class="mb-0"><i class="bi bi-person-plus me-2"></i>@ViewData["Title"]</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
         @if (string.IsNullOrEmpty(Model.SpotifyEmail))
         {
-            <div class="alert alert-info">
-                <h4>Step 1: Connect with Spotify</h4>
-                <p>To register, you must first authenticate with your Spotify account.</p>
+            <div class="alert-spotify-connect">
+                <h4><span class="step-indicator">1</span>Connect with Spotify</h4>
+                <p class="mb-3">To register, you must first authenticate with your Spotify account. This allows us to personalize your music experience.</p>
                 <form asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                     <input type="hidden" name="provider" value="Spotify" />
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-spotify"></i> Connect with Spotify
+                    <button type="submit" class="btn-spotify">
+                        <i class="bi bi-spotify me-2"></i> Connect with Spotify
                     </button>
                 </form>
             </div>
         }
         else
         {
-            <div class="alert alert-success">
-                <h4>✓ Spotify Connected</h4>
-                <p>Authenticated as: <strong>@Model.SpotifyDisplayName</strong> (@Model.SpotifyEmail)</p>
+            <div class="alert-success-custom">
+                <h4><i class="bi bi-check-circle me-2"></i>Spotify Connected</h4>
+                <p class="mb-0">Authenticated as: <strong>@Model.SpotifyDisplayName</strong> (@Model.SpotifyEmail)</p>
             </div>
             
-            <div class="col-md-6">
+            <div class="register-card">
                 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                    <h2>Step 2: Complete Registration</h2>
-                    <hr />
+                    <h2><span class="step-indicator">2</span>Complete Registration</h2>
+                    <p class="text-muted mb-4">Just a few more details to get you started</p>
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                     <div class="form-floating mb-3">
                         <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" value="@Model.SpotifyEmail" />
@@ -48,7 +156,9 @@
                         <label asp-for="Input.ConfirmPassword">Confirm Password</label>
                         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                     </div>
-                    <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Complete Registration</button>
+                    <button id="registerSubmit" type="submit" class="btn-primary-custom">
+                        <i class="bi bi-check-lg me-2"></i>Complete Registration
+                    </button>
                 </form>
             </div>
         }

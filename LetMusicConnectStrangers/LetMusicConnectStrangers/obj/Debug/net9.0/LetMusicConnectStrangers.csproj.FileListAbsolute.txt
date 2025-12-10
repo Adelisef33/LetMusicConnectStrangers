@@ -26,7 +26,6 @@ C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\Le
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\staticwebassets.development.json
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\LetMusicConnectStrangers.dll
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\refint\LetMusicConnectStrangers.dll
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\LetMusicConnectStrangers.pdb
@@ -416,3 +415,4 @@ C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\Le
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\compressed\nezrqnk58p-{0}-muycvpuwrr-muycvpuwrr.gz
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\compressed\v0zgfp0y55-{0}-87fc7y1x7t-87fc7y1x7t.gz
 C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\compressed\yfc7ypekbg-{0}-mlv21k5csn-mlv21k5csn.gz
+C:\Users\netia\source\repos\LetMusicConnectStrangers\LetMusicConnectStrangers\LetMusicConnectStrangers\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

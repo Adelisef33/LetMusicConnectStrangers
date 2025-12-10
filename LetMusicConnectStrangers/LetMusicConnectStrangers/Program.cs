@@ -48,11 +48,13 @@ builder.Services.AddAuthentication()
         options.SaveTokens = true;
         options.CallbackPath = "/signin-spotify";
 
+        // Required scopes for Spotify API access
         options.Scope.Add("user-read-email");
         options.Scope.Add("user-read-private");
-        options.Scope.Add("user-top-read");
-        options.Scope.Add("user-library-read");
-        options.Scope.Add("playlist-read-private");
+        options.Scope.Add("user-top-read");           // For top tracks/artists
+        options.Scope.Add("user-read-recently-played"); // For recently played tracks
+        options.Scope.Add("user-library-read");       // For saved tracks
+        options.Scope.Add("playlist-read-private");   // For playlists
 
         options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;

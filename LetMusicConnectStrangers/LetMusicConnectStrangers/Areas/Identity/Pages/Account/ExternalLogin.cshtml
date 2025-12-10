@@ -4,27 +4,109 @@
     ViewData["Title"] = "Register";
 }
 
-<h1>@ViewData["Title"]</h1>
-<h2 id="external-login-title">Associate your @Model.ProviderDisplayName account.</h2>
-<hr />
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .register-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        padding: 2.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .register-card h2 {
+        color: #191414;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        border: 2px solid #1DB954;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-box p {
+        margin-bottom: 0;
+        color: #0c5460;
+    }
+    
+    .provider-badge {
+        background: #1DB954;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        margin: 0 0.25rem;
+    }
+    
+    .btn-primary-custom {
+        background: #1DB954;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+        width: 100%;
+    }
+    
+    .btn-primary-custom:hover {
+        background: #169c46;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+</style>
 
-<p id="external-login-description" class="text-info">
-    You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
-</p>
+<div class="page-header">
+    <h1 class="mb-0"><i class="bi bi-person-plus me-2"></i>@ViewData["Title"]</h1>
+</div>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email." />
-                <label asp-for="Input.Email" class="form-label"></label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="register-card">
+            <h2 id="external-login-title">
+                <i class="bi bi-link-45deg me-2"></i>Associate your <span class="provider-badge">@Model.ProviderDisplayName</span> account
+            </h2>
+            
+            <div class="info-box">
+                <p id="external-login-description">
+                    <i class="bi bi-check-circle me-2"></i>
+                    You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
+                    Please enter an email address for this site below and click the Register button to finish
+                    logging in.
+                </p>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
+
+            <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email." />
+                    <label asp-for="Input.Email" class="form-label">Email</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn-primary-custom">
+                    <i class="bi bi-check-lg me-2"></i>Register
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

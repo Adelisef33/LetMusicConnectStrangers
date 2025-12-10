@@ -1,0 +1,1133 @@
+@page
+@model LetMusicConnectStrangers.Pages.ReviewsModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LetMusicConnectStrangers.Models.ApplicationUser> SignInManager
+@inject UserManager<LetMusicConnectStrangers.Models.ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Song Reviews";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LetMusicConnectStrangers</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LetMusicConnectStrangers.styles.css" asp-append-version="true" />
+</head>
+<body>
+
+<style>
+    /* Page styling to match the rest of the site */
+    body {
+        background-color: #fff;
+        margin-bottom: 60px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .btn-create {
+        background: white;
+        color: #1DB954;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        cursor: pointer;
+    }
+    
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        background: #f0f0f0;
+        color: #1DB954;
+    }
+    
+    .create-form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .create-form-header {
+        background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .create-form-body { 
+        padding: 1.5rem;
+        background-color: #fff;
+    }
+    
+    .tab-btn {
+        border: none;
+        background: #f0f0f0;
+        color: #666;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        margin-right: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .tab-btn:hover { background: #e0e0e0; }
+    .tab-btn.active { background: #1DB954; color: white; }
+    
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    
+    .tracks-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 8px;
+        background-color: #fff;
+    }
+    
+    .track-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+        margin-bottom: 4px;
+        background-color: #fff;
+    }
+    
+    .track-item:hover { background: #f8f9fa; border-color: #e0e0e0; }
+    .track-item.selected { background: #e8f5e9; border-color: #1DB954; }
+    
+    .track-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    
+    .track-placeholder {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+    .search-box input {
+        flex: 1;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 10px 14px;
+    }
+    .search-box input:focus { border-color: #1DB954; outline: none; }
+    .search-box button {
+        background: #1DB954;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .search-box button:hover { background: #1ed760; }
+    
+    .selected-song-preview {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        border: 2px solid #1DB954;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    
+    /* Star rating styles */
+    .star-rating { 
+        font-size: 2rem;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .star-rating .star {
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: transparent;
+        border: 1px solid #e0e0e0;
+        padding: 6px 8px;
+        font-size: 1.4rem;
+        line-height: 1;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+    }
+    .star-rating .star i { font-size: 1.35rem; color: inherit; }
+    .star-rating .star:focus { outline: 3px solid rgba(29,185,84,0.18); border-color: #1DB954; }
+    .star-rating .star.active { color: #ffc107; background: rgba(255,193,7,0.1); border-color: #ffc107; }
+    .star-rating .star:hover { background: rgba(0,0,0,0.03); color: #ffca2c; border-color: #ffca2c; }
+    
+    .btn-submit {
+        background: #1DB954;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-submit:hover:not(:disabled) { background: #1ed760; color: white; }
+    .btn-submit:disabled { background: #ccc; color: #999; cursor: not-allowed; }
+    
+    .btn-cancel {
+        background: #f0f0f0;
+        border: none;
+        color: #666;
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .btn-cancel:hover { background: #e0e0e0; color: #333; }
+    
+    .review-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .review-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+    .review-card .album-art { height: 160px; object-fit: cover; }
+    .review-card .album-placeholder {
+        height: 160px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .rating-stars { color: #ffc107; font-size: 0.9rem; letter-spacing: 1px; }
+    .rating-stars .empty { color: #ddd; }
+    
+    .review-comment {
+        background: #f8f9fa;
+        border-left: 3px solid #1DB954;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+    
+    .user-initial {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    
+    .empty-state { text-align: center; padding: 5rem 2rem; }
+    .empty-state-icon { font-size: 6rem; color: #1DB954; opacity: 0.3; }
+</style>
+
+<!-- Navigation Bar -->
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">LetMusicConnectStrangers</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/">Home</a>
+                    </li>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Reviews">Reviews</a>
+                        </li>
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/Home/Privacy">Privacy</a>
+                    </li>
+                </ul>
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="container">
+    <main role="main" class="pb-3">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-vinyl me-2"></i>Song Reviews
+                </h1>
+                <p class="mb-0 opacity-75">Share your thoughts on your favorite tracks</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                @if (!Model.ShowCreateForm)
+                {
+                    <form method="post" asp-page-handler="OpenForm" class="d-inline">
+                        <button type="submit" class="btn-create">
+                            <i class="bi bi-plus-lg me-2"></i>Write Review
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Create/Edit Form -->
+    @if (Model.ShowCreateForm)
+    {
+        <div class="create-form-card">
+            <div class="create-form-header">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-music-note-beamed me-2"></i>
+                    @(Model.EditingReview != null ? "Edit Review" : "Write a Review")
+                </h5>
+                <a href="/Reviews" class="btn btn-sm btn-light rounded-pill px-3">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+            
+            <div class="create-form-body">
+                <div class="row">
+                    <!-- Left: Song Selection -->
+                    <div class="col-lg-6 mb-4 mb-lg-0">
+                        <label class="form-label fw-bold small text-uppercase text-muted mb-3">Choose a Song</label>
+                        
+                        <!-- Tab Buttons -->
+                        <div class="mb-3" id="tabButtons">
+                            <button type="button" class="tab-btn @(Model.ActiveTab == "recent" ? "active" : "")" data-tab="recent">
+                                <i class="bi bi-clock-history me-1"></i>Recent
+                            </button>
+                            <button type="button" class="tab-btn @(Model.ActiveTab == "top" ? "active" : "")" data-tab="top">
+                                <i class="bi bi-fire me-1"></i>Top
+                            </button>
+                            <button type="button" class="tab-btn @(Model.ActiveTab == "search" ? "active" : "")" data-tab="search">
+                                <i class="bi bi-search me-1"></i>Search
+                            </button>
+                        </div>
+
+                        <!-- Recent Tab -->
+                        <div id="panel-recent" class="tab-panel @(Model.ActiveTab == "recent" ? "active" : "")">
+                            <div class="tracks-list">
+                                @if (Model.RecentlyPlayed.Any())
+                                {
+                                    @foreach (var track in Model.RecentlyPlayed)
+                                    {
+                                        <div class="track-item" data-track-id="@track.SpotifyId" data-track-name="@track.Name" 
+                                             data-track-artist="@track.Artist" data-track-album="@track.Album" data-track-image="@track.ImageUrl"
+                                             tabindex="0" role="button">
+                                            @if (!string.IsNullOrEmpty(track.ImageUrl))
+                                            { <img src="@track.ImageUrl" class="track-img me-3" alt="" /> }
+                                            else
+                                            { <div class="track-placeholder me-3"><i class="bi bi-music-note text-white"></i></div> }
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <div class="fw-semibold text-truncate">@track.Name</div>
+                                                <small class="text-muted text-truncate d-block">@track.Artist</small>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="bi bi-clock-history fs-3 opacity-50 d-block mb-2"></i>
+                                        No recent tracks found
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Top Tab -->
+                        <div id="panel-top" class="tab-panel @(Model.ActiveTab == "top" ? "active" : "")">
+                            <div class="tracks-list">
+                                @if (Model.TopTracks.Any())
+                                {
+                                    @foreach (var track in Model.TopTracks)
+                                    {
+                                        <div class="track-item" data-track-id="@track.SpotifyId" data-track-name="@track.Name" 
+                                             data-track-artist="@track.Artist" data-track-album="@track.Album" data-track-image="@track.ImageUrl"
+                                             tabindex="0" role="button">
+                                            @if (!string.IsNullOrEmpty(track.ImageUrl))
+                                            { <img src="@track.ImageUrl" class="track-img me-3" alt="" /> }
+                                            else
+                                            { <div class="track-placeholder me-3"><i class="bi bi-music-note text-white"></i></div> }
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <div class="fw-semibold text-truncate">@track.Name</div>
+                                                <small class="text-muted text-truncate d-block">@track.Artist</small>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="bi bi-fire fs-3 opacity-50 d-block mb-2"></i>
+                                        No top tracks found
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Search Tab -->
+                        <div id="panel-search" class="tab-panel @(Model.ActiveTab == "search" ? "active" : "")">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Search for songs on Spotify..." value="@Model.SearchQuery" autocomplete="off" />
+                                <button type="button" id="searchButton"><i class="bi bi-search"></i></button>
+                            </div>
+                            
+                            <div id="searchLoadingIndicator" class="text-center py-3 text-muted" style="display: none;">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                Searching Spotify...
+                            </div>
+
+                            <div class="tracks-list" id="searchResultsList">
+                                @if (Model.SearchResults.Any())
+                                {
+                                    <div class="alert alert-success small mb-2">
+                                        Found @Model.SearchResults.Count results for "@Model.SearchQuery"
+                                    </div>
+                                    @foreach (var track in Model.SearchResults)
+                                    {
+                                        <div class="track-item" data-track-id="@track.SpotifyId" data-track-name="@track.Name" 
+                                             data-track-artist="@track.Artist" data-track-album="@track.Album" data-track-image="@track.ImageUrl"
+                                             tabindex="0" role="button">
+                                            @if (!string.IsNullOrEmpty(track.ImageUrl))
+                                            { <img src="@track.ImageUrl" class="track-img me-3" alt="" /> }
+                                            else
+                                            { <div class="track-placeholder me-3"><i class="bi bi-music-note text-white"></i></div> }
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <div class="fw-semibold text-truncate">@track.Name</div>
+                                                <small class="text-muted text-truncate d-block">@track.Artist</small>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 text-muted" id="searchEmptyState">
+                                        <i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i>
+                                        @if (string.IsNullOrEmpty(Model.SearchQuery))
+                                        {
+                                            <p>Type a song name to search Spotify</p>
+                                        }
+                                        else
+                                        {
+                                            <p>No results found for "@Model.SearchQuery"</p>
+                                            <small>Try a different search term</small>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Review Form -->
+                    <div class="col-lg-6">
+                        <form method="post" id="reviewForm">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                            <input type="hidden" name="Input.ReviewId" id="inputReviewId" value="@Model.Input.ReviewId" />
+                            <input type="hidden" name="Input.SpotifyTrackId" id="inputTrackId" value="@Model.Input.SpotifyTrackId" />
+                            <input type="hidden" name="Input.TrackName" id="inputTrackName" value="@Model.Input.TrackName" />
+                            <input type="hidden" name="Input.ArtistName" id="inputArtistName" value="@Model.Input.ArtistName" />
+                            <input type="hidden" name="Input.AlbumName" id="inputAlbumName" value="@Model.Input.AlbumName" />
+                            <input type="hidden" name="Input.AlbumImageUrl" id="inputAlbumImage" value="@Model.Input.AlbumImageUrl" />
+                            <input type="hidden" name="Input.Rating" id="inputRating" value="@Model.Input.Rating" />
+
+                            <!-- Selected Song -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Selected Song</label>
+                                <div id="songPreview" class="@(string.IsNullOrEmpty(Model.Input.SpotifyTrackId) ? "d-none" : "")">
+                                    <div class="selected-song-preview d-flex align-items-center">
+                                        <img id="previewImg" src="@Model.Input.AlbumImageUrl" class="track-img me-3" alt="" 
+                                             style="@(string.IsNullOrEmpty(Model.Input.AlbumImageUrl) ? "display:none" : "")" />
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold" id="previewName">@Model.Input.TrackName</div>
+                                            <small class="text-muted" id="previewArtist">@Model.Input.ArtistName</small>
+                                        </div>
+                                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    </div>
+                                </div>
+                                <div id="noSongMsg" class="@(string.IsNullOrEmpty(Model.Input.SpotifyTrackId) ? "" : "d-none")">
+                                    <div class="alert alert-light border mb-0 py-2">
+                                        <i class="bi bi-arrow-left me-2"></i>Select a song from the left
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rating -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Your Rating</label>
+                                <div class="star-rating" id="starRating" role="radiogroup" aria-label="Star rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <button type="button" class="star @(Model.Input.Rating >= i ? "active" : "")" data-value="@i" aria-pressed="@(Model.Input.Rating >= i ? "true" : "false")" aria-label="Rate @i star@(i>1? "s" : "")">@Html.Raw(Model.Input.Rating >= i ? "<i class=\"bi bi-star-fill\"></i>" : "<i class=\"bi bi-star\"></i>")</button>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn-submit flex-grow-1" id="submitBtn"
+                                        @(string.IsNullOrEmpty(Model.Input.SpotifyTrackId) || Model.Input.Rating == 0 ? "disabled" : "")>
+                                    <i class="bi bi-send me-2"></i>@(Model.EditingReview != null ? "Update Review" : "Post Review")
+                                </button>
+                                <a href="/Reviews" class="btn-cancel">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Reviews Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-chat-square-quote me-2 text-muted"></i>All Reviews
+        </h4>
+        <span class="badge bg-secondary rounded-pill">@Model.Reviews.Count reviews</span>
+    </div>
+
+    @if (Model.Reviews.Any())
+    {
+        <div class="row g-4">
+            @foreach (var review in Model.Reviews)
+            {
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="review-card h-100">
+                        <div class="position-relative">
+                            @if (!string.IsNullOrEmpty(review.AlbumImageUrl))
+                            { <img src="@review.AlbumImageUrl" class="w-100 album-art" alt="" /> }
+                            else
+                            {
+                                <div class="album-placeholder d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-music-note-beamed text-white" style="font-size: 2.5rem; opacity: 0.6;"></i>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="p-3">
+                            <div class="rating-stars mb-2">
+                                @for (int i = 0; i < review.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                                @for (int i = review.Rating; i < 5; i++) { <i class="bi bi-star empty"></i> }
+                            </div>
+
+                            <h6 class="fw-bold mb-1 text-truncate">@review.TrackName</h6>
+                            <p class="text-muted small mb-2 text-truncate">@review.ArtistName</p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                                <div class="d-flex align-items-center">
+                                    <div class="user-initial me-2">
+                                        @((review.User?.SpotifyDisplayName ?? review.User?.UserName ?? "A").Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <small class="fw-semibold d-block" style="line-height: 1.2;">
+                                            @(review.User?.SpotifyDisplayName ?? review.User?.UserName ?? "Anonymous")
+                                        </small>
+                                        <small class="text-muted" style="font-size: 0.7rem;">@review.CreatedAt.ToString("MMM dd")</small>
+                                    </div>
+                                </div>
+
+                                @if (review.UserId == Model.CurrentUserId)
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li>
+                                                <a href="/Reviews?EditId=@review.ReviewId&ShowCreateForm=true" class="dropdown-item small">
+                                                    <i class="bi bi-pencil me-2"></i>Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item small text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-review-id="@review.ReviewId" data-review-title="@review.TrackName">
+                                                    <i class="bi bi-trash me-2"></i>Delete
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-music-note-list empty-state-icon"></i>
+            <h4 class="mt-4 fw-bold">No reviews yet</h4>
+            <p class="text-muted mb-4">Be the first to share your musical opinion!</p>
+            @if (!Model.ShowCreateForm)
+            {
+                <form method="post" asp-page-handler="OpenForm" class="d-inline">
+                    <button type="submit" class="btn-create">
+                        <i class="bi bi-plus-lg me-2"></i>Write First Review
+                    </button>
+                </form>
+            }
+        </div>
+    }
+    </main>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Delete Review
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Are you sure you want to delete your review for <strong id="deleteReviewTitle"></strong>?</p>
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-2"></i>Cancel
+                </button>
+                <form method="post" action="" id="deleteForm" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="deleteFormId" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Yes, Delete Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2025 - LetMusicConnectStrangers - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+<script>
+    // Tab switching
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing...');
+        
+        // Tab buttons
+        var tabButtons = document.querySelectorAll('.tab-btn');
+        console.log('Found ' + tabButtons.length + ' tab buttons');
+        
+        tabButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tabName = this.getAttribute('data-tab');
+                console.log('Tab clicked: ' + tabName);
+                
+                // Remove active from all tabs and panels
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+                
+                // Add active to clicked tab and panel
+                this.classList.add('active');
+                var panel = document.getElementById('panel-' + tabName);
+                if (panel) { panel.classList.add('active'); }
+            });
+        });
+        
+        // Search form debugging
+        var searchForm = document.getElementById('searchForm');
+        if (searchForm) {
+            console.log('Search form found');
+            searchForm.addEventListener('submit', function(e) {
+                console.log('=== SEARCH FORM SUBMITTED ===');
+                var searchInput = document.getElementById('searchInput');
+                console.log('Search query:', searchInput ? searchInput.value : 'INPUT NOT FOUND');
+                console.log('Form action:', this.action);
+                console.log('Form method:', this.method);
+                // Don't prevent default - let it submit
+            });
+        } else {
+            console.log('Search form NOT found');
+        }
+        
+        // Track item selection
+        var trackItems = document.querySelectorAll('.track-item');
+        console.log('Found ' + trackItems.length + ' track items');
+
+        // Add form submission logging for review form
+        var reviewForm = document.getElementById('reviewForm');
+        function getInputValue(id) {
+            var el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(e) {
+                console.log('=== REVIEW FORM SUBMITTING ===');
+                console.log('ReviewId:', getInputValue('inputReviewId'));
+                console.log('SpotifyTrackId:', getInputValue('inputTrackId'));
+                console.log('TrackName:', getInputValue('inputTrackName'));
+                console.log('ArtistName:', getInputValue('inputArtistName'));
+                console.log('AlbumName:', getInputValue('inputAlbumName'));
+                console.log('Rating:', getInputValue('inputRating'));
+                var commentEl = document.querySelector('textarea[name="Input.Comment"]');
+                console.log('Comment:', commentEl ? commentEl.value : '(none)');
+                console.log('Form action:', this.action);
+                console.log('Form method:', this.method);
+                console.log('=== END FORM DATA ===');
+                // Let form submit naturally
+            });
+        }
+
+        // Delegated handlers on every tracks-list so clicks register for all tabs/lists
+        document.querySelectorAll('.tracks-list').forEach(function(tracksListContainer) {
+            tracksListContainer.addEventListener('click', function(e) {
+                var item = e.target.closest('.track-item');
+                if (!item) return;
+
+                var trackId = item.getAttribute('data-track-id');
+                var trackName = item.getAttribute('data-track-name');
+                var trackArtist = item.getAttribute('data-track-artist');
+                var trackAlbum = item.getAttribute('data-track-album');
+                var trackImage = item.getAttribute('data-track-image');
+
+                console.log('Track (delegated) selected:', trackName);
+
+                // Deselect all items
+                document.querySelectorAll('.track-item').forEach(function(i) { i.classList.remove('selected'); });
+                // Select this item
+                item.classList.add('selected');
+
+                // Update hidden inputs - PRESERVE ReviewId if it exists
+                var reviewIdEl = document.getElementById('inputReviewId');
+                var existingReviewId = reviewIdEl ? reviewIdEl.value : '';
+                
+                var inputTrackId = document.getElementById('inputTrackId');
+                if (inputTrackId) inputTrackId.value = trackId;
+                var inputTrackName = document.getElementById('inputTrackName'); if (inputTrackName) inputTrackName.value = trackName;
+                var inputArtistName = document.getElementById('inputArtistName'); if (inputArtistName) inputArtistName.value = trackArtist;
+                var inputAlbumName = document.getElementById('inputAlbumName'); if (inputAlbumName) inputAlbumName.value = trackAlbum;
+                var inputAlbumImage = document.getElementById('inputAlbumImage'); if (inputAlbumImage) inputAlbumImage.value = trackImage;
+                
+                // Make sure ReviewId is still set
+                if (existingReviewId && reviewIdEl) {
+                    reviewIdEl.value = existingReviewId;
+                    console.log('Preserved ReviewId:', existingReviewId);
+                }
+
+                // Update preview
+                var previewNameEl = document.getElementById('previewName'); if (previewNameEl) previewNameEl.innerText = trackName;
+                var previewArtistEl = document.getElementById('previewArtist'); if (previewArtistEl) previewArtistEl.innerText = trackArtist;
+                var previewImgEl = document.getElementById('previewImg'); if (previewImgEl) previewImgEl.src = trackImage;
+                var songPreviewEl = document.getElementById('songPreview'); if (songPreviewEl) songPreviewEl.classList.remove('d-none');
+                var noSongMsgEl = document.getElementById('noSongMsg'); if (noSongMsgEl) noSongMsgEl.classList.add('d-none');
+
+                // Update submit state
+                if (typeof updateSubmitState === 'function') updateSubmitState();
+            });
+        });
+
+        trackItems.forEach(function(item) {
+            item.addEventListener('click', function() {
+                var trackId = this.getAttribute('data-track-id');
+                var trackName = this.getAttribute('data-track-name');
+                var trackArtist = this.getAttribute('data-track-artist');
+                var trackAlbum = this.getAttribute('data-track-album');
+                var trackImage = this.getAttribute('data-track-image');
+
+                console.log('Track selected:', trackName);
+
+                // Deselect all items
+                trackItems.forEach(function(i) { i.classList.remove('selected'); });
+
+                // Select this item
+                this.classList.add('selected');
+
+                // PRESERVE ReviewId if it exists
+                var reviewIdEl = document.getElementById('inputReviewId');
+                var existingReviewId = reviewIdEl ? reviewIdEl.value : '';
+
+                // Update hidden inputs
+                document.getElementById('inputTrackId').value = trackId;
+                document.getElementById('inputTrackName').value = trackName;
+                document.getElementById('inputArtistName').value = trackArtist;
+                document.getElementById('inputAlbumName').value = trackAlbum;
+                document.getElementById('inputAlbumImage').value = trackImage;
+                
+                // Make sure ReviewId is still set
+                if (existingReviewId && reviewIdEl) {
+                    reviewIdEl.value = existingReviewId;
+                    console.log('Preserved ReviewId:', existingReviewId);
+                }
+
+                // Update preview
+                document.getElementById('previewName').innerText = trackName;
+                document.getElementById('previewArtist').innerText = trackArtist;
+                document.getElementById('previewImg').src = trackImage;
+                document.getElementById('songPreview').classList.remove('d-none');
+                document.getElementById('noSongMsg').classList.add('d-none');
+
+                // Enable submit if rating present
+                updateSubmitState();
+            });
+        });
+
+         // Star rating
+         var starRating = document.getElementById('starRating');
+         if (starRating) {
+             starRating.addEventListener('click', function(e) {
+                 var btn = e.target.classList.contains('star') ? e.target : e.target.closest('.star');
+                 if (!btn) return;
+                 var ratingValue = parseInt(btn.getAttribute('data-value')) || 0;
+                 console.log('Star clicked, setting rating to:', ratingValue);
+ 
+                 var stars = starRating.querySelectorAll('.star');
+                 stars.forEach(function(star, index) {
+                     if (index < ratingValue) {
+                         star.classList.add('active');
+                         star.innerHTML = '<i class="bi bi-star-fill"></i>';
+                         star.setAttribute('aria-pressed', 'true');
+                     } else {
+                         star.classList.remove('active');
+                         star.innerHTML = '<i class="bi bi-star"></i>';
+                         star.setAttribute('aria-pressed', 'false');
+                     }
+                 });
+ 
+                 document.getElementById('inputRating').value = ratingValue;
+ 
+                // Enable submit if track selected
+                updateSubmitState();
+             });
+         }
+ 
+        // Update submit button enabled/disabled state based on hidden inputs
+        function updateSubmitState() {
+            var submitBtn = document.getElementById('submitBtn');
+            if (!submitBtn) return;
+            var trackId = getInputValue('inputTrackId');
+            var rating = parseInt(getInputValue('inputRating') || '0', 10);
+            if (trackId && rating > 0) {
+                submitBtn.removeAttribute('disabled');
+            } else {
+                submitBtn.setAttribute('disabled', 'disabled');
+            }
+        }
+ 
+        // Initialize submit state on load
+        updateSubmitState();
+        
+        // Initialize star display on page load (for editing)
+        var initialRating = parseInt(getInputValue('inputRating') || '0', 10);
+        if (initialRating > 0) {
+            var starRatingEl = document.getElementById('starRating');
+             if (starRatingEl) {
+                 var stars = starRatingEl.querySelectorAll('.star');
+                 stars.forEach(function(star, index) {
+                     if (index < initialRating) {
+                         star.classList.add('active');
+                         star.innerHTML = '<i class="bi bi-star-fill"></i>';
+                         star.setAttribute('aria-pressed', 'true');
+                     } else {
+                         star.classList.remove('active');
+                         star.innerHTML = '<i class="bi bi-star"></i>';
+                         star.setAttribute('aria-pressed', 'false');
+                     }
+                 });
+             }
+         }
+         
+         // Pre-select the song when editing a review
+         var preselectedTrackId = getInputValue('inputTrackId');
+         if (preselectedTrackId) {
+             console.log('Pre-selecting track with ID:', preselectedTrackId);
+             // Find and mark the track as selected
+             var allTrackItems = document.querySelectorAll('.track-item');
+             allTrackItems.forEach(function(item) {
+                 var itemTrackId = item.getAttribute('data-track-id');
+                 if (itemTrackId === preselectedTrackId) {
+                     item.classList.add('selected');
+                     console.log('Found and selected track:', item.getAttribute('data-track-name'));
+                     // Scroll the track into view if it's in a list
+                     var tracksList = item.closest('.tracks-list');
+                     if (tracksList) {
+                         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                     }
+                 }
+             });
+         }
+
+        // Delete review confirmation
+        var deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var reviewId = button.getAttribute('data-review-id');
+                var reviewTitle = button.getAttribute('data-review-title');
+                
+                console.log('=== DELETE MODAL OPENING ===');
+                console.log('Review ID:', reviewId);
+                console.log('Review Title:', reviewTitle);
+                
+                if (!reviewId) {
+                    console.error('ERROR: No review ID found!');
+                    return;
+                }
+                
+                var modalBodyText = deleteModal.querySelector('.modal-body #deleteReviewTitle');
+                if (modalBodyText) {
+                    modalBodyText.textContent = reviewTitle;
+                }
+                
+                var deleteFormId = document.getElementById('deleteFormId');
+                if (deleteFormId) {
+                    deleteFormId.value = reviewId;
+                    console.log('Hidden input ID set to:', deleteFormId.value);
+                }
+                
+                // Update the form action to include the ID in the route
+                var deleteForm = document.getElementById('deleteForm');
+                if (deleteForm && reviewId) {
+                    // Use the Razor Pages handler-style URL without embedding the id in the querystring
+                    // Always pass the id via the hidden input so binding works consistently
+                    deleteForm.action = '/Reviews?handler=Delete';
+                    var deleteFormId = document.getElementById('deleteFormId');
+                    if (deleteFormId) deleteFormId.value = reviewId;
+                    console.log('Form action set to:', deleteForm.action, 'Hidden id set to:', reviewId);
+                } else {
+                    console.error('ERROR: Could not set form action. Form found:', !!deleteForm, 'Review ID:', reviewId);
+                }
+
+                console.log('=== DELETE MODAL READY ===');
+            });
+        }
+        
+        // Ensure delete form submits properly
+        var deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                console.log('=== DELETE FORM SUBMITTING ===');
+                console.log('Form action:', this.action);
+                console.log('Form method:', this.method);
+                var hiddenId = document.getElementById('deleteFormId') ? document.getElementById('deleteFormId').value : '';
+                console.log('Hidden ID value:', hiddenId);
+                
+                // Verify the id is present in the hidden input
+                if (!hiddenId) {
+                    console.error('ERROR: No ID found in hidden input!');
+                    e.preventDefault();
+                    alert('Error: Could not determine review to delete. Please refresh the page and try again.');
+                    return false;
+                }
+                
+                console.log('Form validation passed, submitting...');
+                // Let the form submit naturally
+            });
+        }
+
+        // Live search functionality
+        var searchInput = document.getElementById('searchInput');
+        var searchButton = document.getElementById('searchButton');
+        var searchResultsList = document.getElementById('searchResultsList');
+        var searchLoadingIndicator = document.getElementById('searchLoadingIndicator');
+        var searchEmptyState = document.getElementById('searchEmptyState');
+        var searchDebounceTimer = null;
+
+        if (searchInput && searchButton) {
+            // Handle Enter key to trigger search
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            // Handle search button click
+            searchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                performSearch();
+            });
+
+            // Real-time search as user types (debounced)
+            searchInput.addEventListener('input', function() {
+                var query = this.value.trim();
+
+                if (query.length < 2) {
+                    clearSearchResults();
+                    return;
+                }
+
+                // Clear previous timer
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+
+                // Debounce for 500ms to avoid too many requests
+                searchDebounceTimer = setTimeout(function() {
+                    performSearch();
+                }, 500);
+            });
+
+            function clearSearchResults() {
+                if (searchResultsList) {
+                    searchResultsList.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i><p>Type a song name to search Spotify</p></div>';
+                }
+            }
+
+            function performSearch() {
+                var query = searchInput.value.trim();
+                
+                if (query.length < 2) {
+                    clearSearchResults();
+                    return;
+                }
+
+                console.log('Performing Spotify search for:', query);
+
+                // Show loading indicator
+                if (searchLoadingIndicator) {
+                    searchLoadingIndicator.style.display = 'block';
+                }
+                
+                if (searchResultsList) {
+                    searchResultsList.innerHTML = '';
+                }
+
+                // Use fetch API to call the search handler
+                fetch('/Reviews?handler=SearchTracks&query=' + encodeURIComponent(query), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Search request failed');
+                    }
+                    return response.json();
+                })
+                .then(function(tracks) {
+                    console.log('Search results received:', tracks.length, 'tracks');
+
+                    // Hide loading indicator
+                    if (searchLoadingIndicator) {
+                        searchLoadingIndicator.style.display = 'none';
+                    }
+
+                    if (!searchResultsList) return;
+
+                    if (tracks && tracks.length > 0) {
+                        var resultsHtml = '<div class="alert alert-success small mb-2">Found ' + tracks.length + ' results for "' + query + '"</div>';
+                        
+                        tracks.forEach(function(track) {
+                            var imageHtml = track.imageUrl 
+                                ? '<img src="' + track.imageUrl + '" class="track-img me-3" alt="" />'
+                                : '<div class="track-placeholder me-3"><i class="bi bi-music-note text-white"></i></div>';
+
+                            resultsHtml += '<div class="track-item" data-track-id="' + track.spotifyId + '" ' +
+                                'data-track-name="' + escapeHtml(track.name) + '" ' +
+                                'data-track-artist="' + escapeHtml(track.artist) + '" ' +
+                                'data-track-album="' + escapeHtml(track.album) + '" ' +
+                                'data-track-image="' + (track.imageUrl || '') + '" ' +
+                                'tabindex="0" role="button">' +
+                                imageHtml +
+                                '<div class="flex-grow-1 overflow-hidden">' +
+                                '<div class="fw-semibold text-truncate">' + escapeHtml(track.name) + '</div>' +
+                                '<small class="text-muted text-truncate d-block">' + escapeHtml(track.artist) + '</small>' +
+                                '</div>' +
+                                '</div>';
+                        });
+
+                        searchResultsList.innerHTML = resultsHtml;
+                    } else {
+                        searchResultsList.innerHTML = '<div class="text-center py-4 text-muted">' +
+                            '<i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i>' +
+                            '<p>No results found for "' + escapeHtml(query) + '"</p>' +
+                            '<small>Try a different search term</small>' +
+                            '</div>';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Search error:', error);
+                    
+                    if (searchLoadingIndicator) {
+                        searchLoadingIndicator.style.display = 'none';
+                    }
+                    
+                    if (searchResultsList) {
+                        searchResultsList.innerHTML = '<div class="alert alert-danger small">Search failed. Please try again.</div>';
+                    }
+                });
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

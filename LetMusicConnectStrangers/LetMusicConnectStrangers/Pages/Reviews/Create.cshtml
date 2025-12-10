@@ -1,0 +1,145 @@
+@page
+@model LetMusicConnectStrangers.Pages.Reviews.CreateModel
+@{
+    ViewData["Title"] = "Create Review";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        padding: 2.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .form-card h2 {
+        color: #191414;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-primary-custom {
+        background: #1DB954;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+    }
+    
+    .btn-primary-custom:hover {
+        background: #169c46;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+    }
+    
+    .btn-secondary-custom {
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary-custom:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #1DB954;
+        box-shadow: 0 0 0 0.2rem rgba(29, 185, 84, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #191414;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="mb-0"><i class="bi bi-plus-circle me-2"></i>@ViewData["Title"]</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="form-card">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.TrackName" class="form-label">
+                        <i class="bi bi-music-note me-1"></i>Track Name
+                    </label>
+                    <input asp-for="Input.TrackName" class="form-control" placeholder="Enter track name" />
+                    <span asp-validation-for="Input.TrackName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.ArtistName" class="form-label">
+                        <i class="bi bi-person me-1"></i>Artist Name
+                    </label>
+                    <input asp-for="Input.ArtistName" class="form-control" placeholder="Enter artist name" />
+                    <span asp-validation-for="Input.ArtistName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.SpotifyTrackId" class="form-label">
+                        <i class="bi bi-spotify me-1"></i>Spotify Track ID
+                    </label>
+                    <input asp-for="Input.SpotifyTrackId" class="form-control" placeholder="Enter Spotify track ID" />
+                    <span asp-validation-for="Input.SpotifyTrackId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Rating" class="form-label">
+                        <i class="bi bi-star me-1"></i>Rating (1-5)
+                    </label>
+                    <input asp-for="Input.Rating" type="number" min="1" max="5" class="form-control" placeholder="Rate from 1 to 5" />
+                    <span asp-validation-for="Input.Rating" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Input.Comment" class="form-label">
+                        <i class="bi bi-chat-left-text me-1"></i>Comment
+                    </label>
+                    <textarea asp-for="Input.Comment" class="form-control" rows="4" placeholder="Share your thoughts about this track..."></textarea>
+                    <span asp-validation-for="Input.Comment" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-primary-custom flex-grow-1">
+                        <i class="bi bi-check-lg me-2"></i>Create Review
+                    </button>
+                    <a asp-page="/Reviews" class="btn-secondary-custom">
+                        <i class="bi bi-x-lg me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
