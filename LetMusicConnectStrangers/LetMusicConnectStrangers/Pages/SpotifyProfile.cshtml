@@ -4,16 +4,97 @@
     ViewData["Title"] = "My Spotify Profile";
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        margin-bottom: 2rem;
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+    }
+    
+    .profile-card-header {
+        background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 700;
+    }
+    
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+    
+    .track-item, .artist-item {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e0e0e0;
+        transition: all 0.2s ease;
+    }
+    
+    .track-item:hover, .artist-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .badge-spotify {
+        background: #1DB954;
+        color: white;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+    }
+    
+    .btn-connect {
+        background: white;
+        color: #1DB954;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 28px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-connect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        background: #f0f0f0;
+        color: #1DB954;
+    }
+    
+    .alert-warning-custom {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 2px solid #ffc107;
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="mb-0"><i class="bi bi-spotify me-2"></i>@ViewData["Title"]</h1>
+</div>
 
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="alert alert-warning">
-        @Model.ErrorMessage
+    <div class="alert-warning-custom">
+        <h4><i class="bi bi-exclamation-triangle me-2"></i>Connection Required</h4>
+        <p>@Model.ErrorMessage</p>
         @if (!Model.HasSpotifyConnection)
         {
-            <p class="mt-2">
-                <a href="/Identity/Account/Manage" class="btn btn-success">Connect Spotify Account</a>
+            <p class="mt-3">
+                <a href="/Identity/Account/Manage" class="btn-connect">
+                    <i class="bi bi-spotify me-2"></i>Connect Spotify Account
+                </a>
             </p>
         }
     </div>
@@ -22,11 +103,13 @@ else
 {
     <div class="row">
         <div class="col-md-12">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Spotify Account</h5>
-                    <p><strong>Display Name:</strong> @Model.SpotifyDisplayName</p>
-                    <p><strong>Spotify ID:</strong> @Model.SpotifyId</p>
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Spotify Account</h5>
+                </div>
+                <div class="profile-card-body">
+                    <p class="mb-2"><strong>Display Name:</strong> @Model.SpotifyDisplayName</p>
+                    <p class="mb-0"><strong>Spotify ID:</strong> @Model.SpotifyId</p>
                 </div>
             </div>
         </div>
@@ -34,67 +117,71 @@ else
 
     <div class="row">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Your Top Tracks</h5>
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="mb-0"><i class="bi bi-music-note-list me-2"></i>Your Top Tracks</h5>
                 </div>
-                <div class="card-body">
+                <div class="profile-card-body">
                     @if (Model.TopTracks.Any())
                     {
-                        <div class="list-group">
-                            @foreach (var track in Model.TopTracks)
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">@track.Name</h6>
+                        @foreach (var track in Model.TopTracks)
+                        {
+                            <div class="track-item">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">@track.Name</h6>
+                                        <p class="mb-1 text-muted">
+                                            <i class="bi bi-person me-1"></i>@string.Join(", ", track.Artists.Select(a => a.Name))
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-disc me-1"></i>@track.Album.Name
+                                        </small>
                                     </div>
-                                    <p class="mb-1 text-muted">
-                                        @string.Join(", ", track.Artists.Select(a => a.Name))
-                                    </p>
-                                    <small class="text-muted">@track.Album.Name</small>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                        }
                     }
                     else
                     {
-                        <p class="text-muted">No top tracks found.</p>
+                        <p class="text-muted text-center py-3">
+                            <i class="bi bi-music-note me-2"></i>No top tracks found.
+                        </p>
                     }
                 </div>
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Your Top Artists</h5>
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="mb-0"><i class="bi bi-mic me-2"></i>Your Top Artists</h5>
                 </div>
-                <div class="card-body">
+                <div class="profile-card-body">
                     @if (Model.TopArtists.Any())
                     {
-                        <div class="list-group">
-                            @foreach (var artist in Model.TopArtists)
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <h6 class="mb-1">@artist.Name</h6>
-                                        <span class="badge bg-secondary">@artist.Followers.Total followers</span>
-                                    </div>
-                                    @if (artist.Genres?.Any() == true)
-                                    {
-                                        <p class="mb-0">
-                                            <small class="text-muted">
-                                                @string.Join(", ", artist.Genres.Take(3))
-                                            </small>
-                                        </p>
-                                    }
+                        @foreach (var artist in Model.TopArtists)
+                        {
+                            <div class="artist-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold">@artist.Name</h6>
+                                    <span class="badge-spotify">
+                                        <i class="bi bi-people-fill me-1"></i>@artist.Followers.Total.ToString("N0")
+                                    </span>
                                 </div>
-                            }
-                        </div>
+                                @if (artist.Genres?.Any() == true)
+                                {
+                                    <small class="text-muted">
+                                        <i class="bi bi-tags me-1"></i>@string.Join(", ", artist.Genres.Take(3))
+                                    </small>
+                                }
+                            </div>
+                        }
                     }
                     else
                     {
-                        <p class="text-muted">No top artists found.</p>
+                        <p class="text-muted text-center py-3">
+                            <i class="bi bi-mic me-2"></i>No top artists found.
+                        </p>
                     }
                 </div>
             </div>

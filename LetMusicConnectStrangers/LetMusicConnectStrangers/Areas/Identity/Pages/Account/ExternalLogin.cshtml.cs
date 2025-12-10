@@ -49,7 +49,6 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
         public InputModel Input { get; set; }
 
         public string ProviderDisplayName { get; set; }
-
         public string ReturnUrl { get; set; }
 
         [TempData]
@@ -66,7 +65,6 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
 
         public IActionResult OnPost(string provider, string returnUrl = null)
         {
-            // Use 127.0.0.1 - Spotify requires this, not localhost
             var redirectUrl = Url.Page(
                 "./ExternalLogin",
                 pageHandler: "Callback",
@@ -77,18 +75,19 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
             _logger.LogInformation("Generated redirectUrl for external provider {Provider}: {RedirectUrl}", provider, redirectUrl);
 
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-
             return new ChallengeResult(provider, properties);
         }
 
         public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
+            
             if (remoteError != null)
             {
                 ErrorMessage = $"Error from external provider: {remoteError}";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+            
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
@@ -96,59 +95,139 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
+            // Try to sign in with existing external login
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            
             if (result.Succeeded)
             {
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
                 
+                // Update tokens for existing user
                 if (info.LoginProvider == "Spotify")
                 {
                     var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                    if (user != null && info.AuthenticationTokens != null)
+                    if (user != null)
                     {
-                        user.SpotifyAccessToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "access_token")?.Value;
-                        user.SpotifyRefreshToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "refresh_token")?.Value;
-                        
-                        var expiresIn = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "expires_in")?.Value;
-                        if (!string.IsNullOrEmpty(expiresIn) && int.TryParse(expiresIn, out int seconds))
-                        {
-                            user.SpotifyTokenExpiration = DateTime.UtcNow.AddSeconds(seconds);
-                        }
-                        
-                        await _userManager.UpdateAsync(user);
+                        await UpdateSpotifyTokens(user, info);
                     }
                 }
-
                 return LocalRedirect(returnUrl);
             }
+            
             if (result.IsLockedOut)
             {
                 return RedirectToPage("./Lockout");
             }
-            else
+
+            // Handle Spotify login - auto-create or link account
+            if (info.LoginProvider == "Spotify")
             {
-                if (info.LoginProvider == "Spotify")
+                return await HandleSpotifyLoginAsync(info, returnUrl);
+            }
+
+            // For other providers, show confirmation page
+            ReturnUrl = returnUrl;
+            ProviderDisplayName = info.ProviderDisplayName;
+            if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+            {
+                Input = new InputModel { Email = info.Principal.FindFirstValue(ClaimTypes.Email) };
+            }
+            return Page();
+        }
+
+        private async Task<IActionResult> HandleSpotifyLoginAsync(ExternalLoginInfo info, string returnUrl)
+        {
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var displayName = info.Principal.FindFirstValue(ClaimTypes.Name);
+            var spotifyId = info.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                ErrorMessage = "Email not provided by Spotify. Please ensure your Spotify account has a verified email.";
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+
+            // Check if user with this email exists
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            
+            if (existingUser != null)
+            {
+                // User exists - link Spotify login if not already linked
+                var logins = await _userManager.GetLoginsAsync(existingUser);
+                var hasSpotifyLogin = logins.Any(l => l.LoginProvider == "Spotify");
+
+                if (!hasSpotifyLogin)
                 {
-                    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                    var name = info.Principal.FindFirstValue(ClaimTypes.Name);
-                    
-                    TempData["SpotifyEmail"] = email;
-                    TempData["SpotifyDisplayName"] = name;
-                    
-                    return RedirectToPage("./Register", new { ReturnUrl = returnUrl });
+                    var addLoginResult = await _userManager.AddLoginAsync(existingUser, info);
+                    if (!addLoginResult.Succeeded)
+                    {
+                        _logger.LogError("Failed to link Spotify login: {Errors}", 
+                            string.Join(", ", addLoginResult.Errors.Select(e => e.Description)));
+                    }
                 }
 
-                ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
-                if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
-                {
-                    Input = new InputModel
-                    {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                    };
-                }
-                return Page();
+                // Update Spotify fields
+                existingUser.SpotifyId = spotifyId;
+                existingUser.SpotifyDisplayName = displayName;
+                existingUser.EmailConfirmed = true; // Ensure email is confirmed
+                await UpdateSpotifyTokens(existingUser, info);
+
+                // Sign in the user
+                await _signInManager.SignInAsync(existingUser, isPersistent: false, info.LoginProvider);
+                _logger.LogInformation("User {Email} signed in via Spotify.", email);
+                return LocalRedirect(returnUrl);
             }
+
+            // Create new user
+            var newUser = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                SpotifyId = spotifyId,
+                SpotifyDisplayName = displayName
+            };
+
+            if (info.AuthenticationTokens != null)
+            {
+                newUser.SpotifyAccessToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "access_token")?.Value;
+                newUser.SpotifyRefreshToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "refresh_token")?.Value;
+                var expiresIn = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "expires_in")?.Value;
+                if (!string.IsNullOrEmpty(expiresIn) && int.TryParse(expiresIn, out int seconds))
+                {
+                    newUser.SpotifyTokenExpiration = DateTime.UtcNow.AddSeconds(seconds);
+                }
+            }
+
+            var createResult = await _userManager.CreateAsync(newUser);
+            if (!createResult.Succeeded)
+            {
+                _logger.LogError("Failed to create user: {Errors}", 
+                    string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                ErrorMessage = "Unable to create account. Please try again.";
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+
+            await _userManager.AddLoginAsync(newUser, info);
+            await _signInManager.SignInAsync(newUser, isPersistent: false, info.LoginProvider);
+            _logger.LogInformation("Created new user {Email} via Spotify.", email);
+            return LocalRedirect(returnUrl);
+        }
+
+        private async Task UpdateSpotifyTokens(ApplicationUser user, ExternalLoginInfo info)
+        {
+            if (info.AuthenticationTokens == null) return;
+            
+            user.SpotifyAccessToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "access_token")?.Value;
+            user.SpotifyRefreshToken = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "refresh_token")?.Value;
+            
+            var expiresIn = info.AuthenticationTokens.FirstOrDefault(t => t.Name == "expires_in")?.Value;
+            if (!string.IsNullOrEmpty(expiresIn) && int.TryParse(expiresIn, out int seconds))
+            {
+                user.SpotifyTokenExpiration = DateTime.UtcNow.AddSeconds(seconds);
+            }
+            
+            await _userManager.UpdateAsync(user);
         }
 
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
@@ -164,7 +243,6 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
-
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
@@ -175,18 +253,6 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
                     if (result.Succeeded)
                     {
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
-
-                        var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                        var callbackUrl = Url.Page(
-                            "/Account/ConfirmEmail",
-                            pageHandler: null,
-                            values: new { area = "Identity", userId = userId, code = code },
-                            protocol: Request.Scheme);
-
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
                         if (_userManager.Options.SignIn.RequireConfirmedAccount)
                         {
@@ -216,9 +282,7 @@ namespace LetMusicConnectStrangers.Areas.Identity.Pages.Account
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'.");
             }
         }
 

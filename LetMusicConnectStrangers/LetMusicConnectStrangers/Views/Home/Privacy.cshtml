@@ -1,6 +1,60 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .content-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        padding: 2.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .content-card h3 {
+        color: #1DB954;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .content-card h3:first-of-type {
+        margin-top: 0;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="mb-0"><i class="bi bi-shield-check me-2"></i>@ViewData["Title"]</h1>
+</div>
+
+<div class="content-card">
+    <p>Your privacy is important to us. This privacy policy explains how LetMusicConnectStrangers collects, uses, and protects your personal information.</p>
+    
+    <h3>Information We Collect</h3>
+    <p>We collect information you provide directly to us, including when you create an account, connect your Spotify account, and create reviews.</p>
+    
+    <h3>How We Use Your Information</h3>
+    <p>We use the information we collect to provide, maintain, and improve our services, including to:</p>
+    <ul>
+        <li>Enable you to connect with Spotify and access your music data</li>
+        <li>Allow you to create and share music reviews</li>
+        <li>Connect you with other music enthusiasts</li>
+        <li>Improve and personalize your experience</li>
+    </ul>
+    
+    <h3>Data Security</h3>
+    <p>We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction.</p>
+    
+    <h3>Third-Party Services</h3>
+    <p>Our service integrates with Spotify. When you connect your Spotify account, you are subject to Spotify's privacy policy and terms of service.</p>
+    
+    <h3>Contact Us</h3>
+    <p>If you have any questions about this privacy policy, please contact us.</p>
+</div>

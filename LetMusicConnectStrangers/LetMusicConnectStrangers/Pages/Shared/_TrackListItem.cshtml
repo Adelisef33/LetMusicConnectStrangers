@@ -1,0 +1,27 @@
+@model LetMusicConnectStrangers.Pages.ReviewsModel.TrackSearchResult
+
+<div class="track-item select-track-btn d-flex align-items-center p-2 cursor-pointer"
+     data-spotifyid="@Model.SpotifyId"
+     data-trackname="@Model.Name"
+     data-artistname="@Model.Artist"
+     data-albumname="@Model.Album"
+     data-imageurl="@Model.ImageUrl"
+     style="cursor: pointer;">
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <img src="@Model.ImageUrl" alt="@Model.Album" class="rounded me-3" 
+             style="width: 48px; height: 48px; object-fit: cover;" />
+    }
+    else
+    {
+        <div class="rounded me-3 d-flex align-items-center justify-content-center" 
+             style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea, #764ba2);">
+            <i class="bi bi-music-note text-white"></i>
+        </div>
+    }
+    <div class="flex-grow-1 overflow-hidden">
+        <div class="fw-semibold text-truncate">@Model.Name</div>
+        <small class="text-muted text-truncate d-block">@Model.Artist</small>
+    </div>
+    <i class="bi bi-plus-circle-fill text-success opacity-50 ms-2"></i>
+</div>

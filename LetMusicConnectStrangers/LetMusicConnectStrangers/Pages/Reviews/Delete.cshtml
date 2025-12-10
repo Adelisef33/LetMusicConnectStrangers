@@ -1,0 +1,139 @@
+@page "{id:int}"
+@model LetMusicConnectStrangers.Pages.Reviews.DeleteModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LetMusicConnectStrangers.Models.ApplicationUser> SignInManager
+@{
+    ViewData["Title"] = "Delete Review";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LetMusicConnectStrangers</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LetMusicConnectStrangers.styles.css" asp-append-version="true" />
+</head>
+<body>
+
+<style>
+    body {
+        background-color: #fff;
+        margin-bottom: 60px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #8b0000 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .review-preview {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 2px solid #dc3545;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+</style>
+
+<!-- Navigation Bar -->
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">LetMusicConnectStrangers</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/">Home</a>
+                    </li>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Reviews">Reviews</a>
+                        </li>
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/Home/Privacy">Privacy</a>
+                    </li>
+                </ul>
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="container">
+    <main role="main" class="pb-3">
+        <div class="page-header">
+            <h2 class="mb-0"><i class="bi bi-trash me-2"></i>Delete Review</h2>
+            <p class="mb-0 mt-2 opacity-75">Are you sure you want to delete this review?</p>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="review-preview">
+                    <h4 class="fw-bold mb-2">
+                        <i class="bi bi-music-note-beamed me-2 text-danger"></i>
+                        @Model.Review.TrackName
+                    </h4>
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-person me-1"></i>@Model.Review.ArtistName
+                    </p>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-warning text-dark">
+                            @for (int i = 0; i < Model.Review.Rating; i++)
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            @for (int i = Model.Review.Rating; i < 5; i++)
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        </span>
+                    </div>
+                    
+                </div>
+                
+                <div class="alert alert-danger mt-4 mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+            </div>
+        </div>
+
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-2"></i>Yes, Delete Review
+                </button>
+                <a asp-page="/Reviews" class="btn btn-secondary px-4">
+                    <i class="bi bi-x-lg me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </main>
+</div>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2025 - LetMusicConnectStrangers - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+</body>
+</html>
