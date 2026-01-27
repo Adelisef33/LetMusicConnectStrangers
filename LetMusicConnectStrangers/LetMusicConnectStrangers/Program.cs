@@ -10,25 +10,78 @@ using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load mkcert certificate that covers 127.0.0.1
+// Prefer mkcert.pfx, fall back to certificate.pfx, then to dev-certs
+var mkcertPath = Path.Combine(builder.Environment.ContentRootPath, "mkcert.pfx");
 var certPath = Path.Combine(builder.Environment.ContentRootPath, "certificate.pfx");
 var certPassword = builder.Configuration["CertificatePassword"] ?? "changeit";
+
+// Create temporary logger to report certificate used
+using var tempLoggerFactory = LoggerFactory.Create(logging => logging.AddConsole());
+var certLogger = tempLoggerFactory.CreateLogger("KestrelCert");
 
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Listen(IPAddress.Parse("127.0.0.1"), 3000, listenOptions =>
     {
-        if (File.Exists(certPath))
+        string usedPath = null;
+        X509Certificate2? cert = null;
+
+        if (File.Exists(mkcertPath))
         {
-            var cert = new X509Certificate2(certPath, certPassword);
-            listenOptions.UseHttps(cert);
+            usedPath = mkcertPath;
+        }
+        else if (File.Exists(certPath))
+        {
+            usedPath = certPath;
+        }
+
+        if (usedPath != null)
+        {
+            // Try with provided password first, then try without password if that fails
+            try
+            {
+                try
+                {
+                    cert = new X509Certificate2(usedPath, certPassword);
+                    certLogger.LogInformation("Loaded PFX with password from {Path}.", usedPath);
+                }
+                catch (System.Security.Cryptography.CryptographicException pwEx)
+                {
+                    certLogger.LogWarning(pwEx, "Failed to load PFX with password; attempting without password for {Path}.", usedPath);
+                    // Try without password
+                    cert = new X509Certificate2(usedPath);
+                    certLogger.LogInformation("Loaded PFX without password from {Path}.", usedPath);
+                }
+
+                // Log certificate details for diagnosis
+                if (cert != null)
+                {
+                    certLogger.LogInformation("Using certificate from {Path} - Subject: {Subject}, Issuer: {Issuer}, Thumbprint: {Thumbprint}, ValidFrom: {From}, ValidTo: {To}",
+                        usedPath, cert.Subject, cert.Issuer, cert.Thumbprint, cert.NotBefore, cert.NotAfter);
+
+                    listenOptions.UseHttps(cert);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                certLogger.LogError(ex, "Failed to load certificate at {Path}", usedPath);
+                // fall through to dev cert if available
+            }
+        }
+
+        if (builder.Environment.IsDevelopment())
+        {
+            certLogger.LogWarning("No valid PFX found or failed to load; requesting Kestrel use the default development certificate.");
+            listenOptions.UseHttps();
         }
         else
         {
-            throw new FileNotFoundException($"Certificate not found at {certPath}. Run: mkcert -pkcs12 -p12-file certificate.pfx 127.0.0.1 localhost");
+            throw new FileNotFoundException($"Certificate not found at {certPath} (or mkcert.pfx). Run: mkcert -pkcs12 -p12-file mkcert.pfx 127.0.0.1 localhost");
         }
     });
 });
