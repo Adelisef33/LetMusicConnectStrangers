@@ -35,12 +35,14 @@
         font-weight: 700;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+        cursor: pointer;
     }
     
     .btn-primary-custom:hover {
         background: #169c46;
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+        color: white;
     }
     
     .btn-secondary-custom {
@@ -51,12 +53,16 @@
         padding: 14px 32px;
         font-weight: 700;
         transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        cursor: pointer;
     }
     
     .btn-secondary-custom:hover {
         background: #5a6268;
         transform: translateY(-2px);
         color: white;
+        text-decoration: none;
     }
     
     .form-control, .form-select {
@@ -79,13 +85,53 @@
 
 <div class="page-header">
     <h1 class="mb-0"><i class="bi bi-plus-circle me-2"></i>@ViewData["Title"]</h1>
+    <p style="color: white; margin-top: 10px;">
+        Method: @HttpContext.Request.Method | 
+        Status Message Null: @(Model.StatusMessage == null) | 
+        Status: "@Model.StatusMessage"
+    </p>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+<div class="col-md-8">
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        var alertClass = Model.StatusMessage.Contains("ERROR") || 
+                         Model.StatusMessage.Contains("Error") || 
+                         Model.StatusMessage.Contains("VALIDATION FAILED") || 
+                         Model.StatusMessage.Contains("failed") 
+                         ? "alert-danger" 
+                         : (Model.StatusMessage.Contains("SUCCESS") ? "alert-success" : "alert-info");
+        
+        <div class="alert @alertClass alert-dismissible fade show" role="alert" style="font-size: 1.1rem; font-weight: bold;">
+            <pre style="margin: 0; white-space: pre-wrap; font-family: inherit;">@Model.StatusMessage</pre>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
         <div class="form-card">
-            <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <form method="post" action="/Reviews/Create" id="createReviewForm" data-ajax="false">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                
+                @if (ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="alert alert-danger">
+                        <strong>Form has errors:</strong>
+                        <ul>
+                            @foreach (var key in ViewData.ModelState.Keys)
+                            {
+                                var errors = ViewData.ModelState[key]?.Errors;
+                                if (errors != null)
+                                {
+                                    foreach (var error in errors)
+                                    {
+                                        <li>@key: @error.ErrorMessage</li>
+                                    }
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
 
                 <div class="mb-3">
                     <label asp-for="Input.TrackName" class="form-label">
@@ -112,26 +158,42 @@
                 </div>
 
                 <div class="mb-3">
+                    <label asp-for="Input.AlbumName" class="form-label">
+                        <i class="bi bi-disc me-1"></i>Album Name <small class="text-muted">(optional)</small>
+                    </label>
+                    <input asp-for="Input.AlbumName" class="form-control" placeholder="Enter album name" />
+                    <span asp-validation-for="Input.AlbumName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.AlbumImageUrl" class="form-label">
+                        <i class="bi bi-image me-1"></i>Album Image URL <small class="text-muted">(optional)</small>
+                    </label>
+                    <input asp-for="Input.AlbumImageUrl" class="form-control" placeholder="Enter album image URL" />
+                    <span asp-validation-for="Input.AlbumImageUrl" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
                     <label asp-for="Input.Rating" class="form-label">
                         <i class="bi bi-star me-1"></i>Rating (1-5)
                     </label>
-                    <input asp-for="Input.Rating" type="number" min="1" max="5" class="form-control" placeholder="Rate from 1 to 5" />
+                    <input asp-for="Input.Rating" type="number" min="1" max="5" value="3" class="form-control" placeholder="Rate from 1 to 5" />
                     <span asp-validation-for="Input.Rating" class="text-danger"></span>
                 </div>
 
                 <div class="mb-4">
                     <label asp-for="Input.Comment" class="form-label">
-                        <i class="bi bi-chat-left-text me-1"></i>Comment
+                        <i class="bi bi-chat-left-text me-1"></i>Comment <small class="text-muted">(optional, max 300 words)</small>
                     </label>
                     <textarea asp-for="Input.Comment" class="form-control" rows="4" placeholder="Share your thoughts about this track..."></textarea>
                     <span asp-validation-for="Input.Comment" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn-primary-custom flex-grow-1">
+                    <button type="submit" class="btn btn-primary-custom flex-grow-1">
                         <i class="bi bi-check-lg me-2"></i>Create Review
                     </button>
-                    <a asp-page="/Reviews" class="btn-secondary-custom">
+                    <a asp-page="/Reviews" class="btn btn-secondary-custom">
                         <i class="bi bi-x-lg me-2"></i>Cancel
                     </a>
                 </div>
@@ -142,4 +204,47 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        console.log('=== Review Create Page Loaded ===');
+        
+        $(document).ready(function() {
+            console.log('jQuery ready');
+            
+            var form = $('#createReviewForm');
+            console.log('Form found:', form.length > 0);
+            console.log('Form action:', form.attr('action'));
+            console.log('Form method:', form.attr('method'));
+            
+            // Check for anti-forgery token
+            var token = $('input[name="__RequestVerificationToken"]');
+            console.log('Anti-forgery token found:', token.length > 0);
+            
+            // Log button click
+            $('button[type="submit"]').on('click', function(e) {
+                console.log('=== Submit Button Clicked ===');
+                console.log('Button element:', this);
+            });
+            
+            // Log form submission
+            form.on('submit', function(e) {
+                console.log('=== Form Submit Event Triggered ===');
+                
+                // Log all form data
+                var formData = $(this).serializeArray();
+                console.log('Form data:', formData);
+                
+                // Check if form is valid (if using jQuery validation)
+                if ($.validator && form.data('validator')) {
+                    var isValid = form.valid();
+                    console.log('Form validation result:', isValid);
+                    if (!isValid) {
+                        console.log('Form validation failed - submission prevented');
+                        return false;
+                    }
+                }
+                
+                console.log('Form should be submitting now...');
+            });
+        });
+    </script>
 }

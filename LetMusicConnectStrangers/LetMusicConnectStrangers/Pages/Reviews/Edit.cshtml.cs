@@ -36,9 +36,12 @@ namespace LetMusicConnectStrangers.Pages.Reviews
             public string TrackName { get; set; } = string.Empty;
             [Required]
             public string ArtistName { get; set; } = string.Empty;
+            public string? AlbumName { get; set; }
+            public string? AlbumImageUrl { get; set; }
             [Required]
             [Range(1,5)]
             public int Rating { get; set; } = 3;
+            public string Comment { get; set; } = string.Empty;
         }
 
         public async Task<IActionResult> OnGetAsync(int id)
@@ -55,7 +58,10 @@ namespace LetMusicConnectStrangers.Pages.Reviews
                 SpotifyTrackId = review.SpotifyTrackId,
                 TrackName = review.TrackName,
                 ArtistName = review.ArtistName,
-                Rating = review.Rating
+                AlbumName = review.AlbumName,
+                AlbumImageUrl = review.AlbumImageUrl,
+                Rating = review.Rating,
+                Comment = review.Comment ?? string.Empty
             };
 
             return Page();
@@ -79,7 +85,10 @@ namespace LetMusicConnectStrangers.Pages.Reviews
             review.SpotifyTrackId = Input.SpotifyTrackId;
             review.TrackName = Input.TrackName;
             review.ArtistName = Input.ArtistName;
+            review.AlbumName = Input.AlbumName;
+            review.AlbumImageUrl = Input.AlbumImageUrl;
             review.Rating = Input.Rating;
+            review.Comment = string.IsNullOrWhiteSpace(Input.Comment) ? null : Input.Comment;
             review.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

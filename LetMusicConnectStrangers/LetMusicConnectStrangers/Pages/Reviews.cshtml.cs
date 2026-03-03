@@ -70,8 +70,12 @@ namespace LetMusicConnectStrangers.Pages
 
             [Required(ErrorMessage = "Rating is required")]
             [Range(1, 5, ErrorMessage = "Please select a rating between 1 and 5")]
-            public int Rating { get; set; } = 3;
-        }
+            // Use 0 so there's no silent default; user must actively pick a rating
+            public int Rating { get; set; } = 0;
+            
+            
+            public string? Comment { get; set; }
+        } 
 
         public class TrackSearchResult
         {
@@ -119,7 +123,8 @@ namespace LetMusicConnectStrangers.Pages
                         ArtistName = EditingReview.ArtistName,
                         AlbumName = EditingReview.AlbumName,
                         AlbumImageUrl = EditingReview.AlbumImageUrl,
-                        Rating = EditingReview.Rating
+                        Rating = EditingReview.Rating,
+                        Comment = EditingReview.Comment ?? string.Empty
                     };
                     await LoadSpotifyTracksAsync(user);
                 }
@@ -128,37 +133,58 @@ namespace LetMusicConnectStrangers.Pages
                     _logger.LogWarning("Review not found for EditId: {EditId}", EditId.Value);
                 }
             }
-            // If ShowCreateModal is requested via query string
+            // If ShowCreateModal is requested via query string (for creating NEW review)
             else if (ShowCreateForm && user != null)
             {
+                // Ensure Input is completely fresh for creating a new review
+                Input = new InputModel
+                {
+                    ReviewId = null,
+                    SpotifyTrackId = string.Empty,
+                    TrackName = string.Empty,
+                    ArtistName = string.Empty,
+                    AlbumName = null,
+                    AlbumImageUrl = null,
+                    Rating = 0,
+                    Comment = string.Empty
+                };
+                EditingReview = null; // Explicitly null to indicate this is create, not edit
                 await LoadSpotifyTracksAsync(user);
             }
         }
 
         public async Task<IActionResult> OnPostOpenFormAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            CurrentUserId = user?.Id;
-            ShowCreateForm = true;
-            ActiveTab = "recent";
-
-            Reviews = await _context.Reviews
-                .Include(r => r.User)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
-
-            if (user != null)
-            {
-                await LoadSpotifyTracksAsync(user);
-            }
-
-            return Page();
+            // Redirect to GET with ShowCreateForm=true to ensure clean form state
+            // This prevents browser from keeping old POST data in the form fields
+            return RedirectToPage(new { ShowCreateForm = true, ActiveTab = "recent" });
         }
 
         private async Task LoadSpotifyTracksAsync(ApplicationUser user)
         {
             try
             {
+                // Fallback: sometimes the ReviewId isn't bound correctly from the form.
+                // Try to populate it from the posted form values using both Razor-generated
+                // name and a plain id-based name used by some client-side code.
+                // IMPORTANT: Only access Request.Form on POST requests
+                if (!Input.ReviewId.HasValue && Request.Method == "POST" && Request.HasFormContentType)
+                {
+                    if (Request.Form.TryGetValue("Input.ReviewId", out var rid) && !string.IsNullOrWhiteSpace(rid))
+                    {
+                        if (int.TryParse(rid.ToString(), out var parsedRid))
+                        {
+                            Input.ReviewId = parsedRid;
+                        }
+                    }
+                    else if (Request.Form.TryGetValue("inputReviewId", out var rid2) && !string.IsNullOrWhiteSpace(rid2))
+                    {
+                        if (int.TryParse(rid2.ToString(), out var parsedRid2))
+                        {
+                            Input.ReviewId = parsedRid2;
+                        }
+                    }
+                }
                 Console.WriteLine($"Loading Spotify tracks for user: {user.UserName}");
                 Console.WriteLine($"Access Token exists: {!string.IsNullOrEmpty(user.SpotifyAccessToken)}");
                 Console.WriteLine($"Refresh Token exists: {!string.IsNullOrEmpty(user.SpotifyRefreshToken)}");
@@ -311,36 +337,107 @@ namespace LetMusicConnectStrangers.Pages
             CurrentUserId = user.Id;
 
             _logger.LogInformation("=== OnPostAsync called ===");
+            // Fallback: sometimes client-side JS may not populate hidden inputs (rating/track id).
+            // Attempt to read values directly from the request form and populate Input before validation.
+            try
+            {
+                if (string.IsNullOrWhiteSpace(Input.SpotifyTrackId) && Request.Form.TryGetValue("Input.SpotifyTrackId", out var fv) && !string.IsNullOrWhiteSpace(fv))
+                {
+                    Input.SpotifyTrackId = fv.ToString();
+                }
+
+                if ((Input.Rating == 0) && Request.Form.TryGetValue("Input.Rating", out var rv) && int.TryParse(rv.ToString(), out var parsedRating) && parsedRating > 0)
+                {
+                    Input.Rating = parsedRating;
+                }
+
+                if ((Input.Rating == 0) && Request.Form.TryGetValue("inputRating", out var rv2) && int.TryParse(rv2.ToString(), out var parsedRating2) && parsedRating2 > 0)
+                {
+                    Input.Rating = parsedRating2;
+                }
+
+                if (string.IsNullOrWhiteSpace(Input.TrackName) && Request.Form.TryGetValue("Input.TrackName", out var tn) && !string.IsNullOrWhiteSpace(tn))
+                {
+                    Input.TrackName = tn.ToString();
+                }
+                
+                // Always ensure Comment is an empty string, never null
+                if (Input.Comment == null)
+                {
+                    Input.Comment = string.Empty;
+                }
+                
+                // Try to populate comment from form if it's currently empty
+                if (string.IsNullOrWhiteSpace(Input.Comment))
+                {
+                    if (Request.Form.TryGetValue("Input.Comment", out var cv))
+                    {
+                        Input.Comment = cv.ToString() ?? string.Empty;
+                    }
+                    else if (Request.Form.TryGetValue("inputComment", out var cv2))
+                    {
+                        Input.Comment = cv2.ToString() ?? string.Empty;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error reading fallback form values");
+            }
+
             _logger.LogInformation("Input.ReviewId: {ReviewId}", Input.ReviewId);
             _logger.LogInformation("Input.SpotifyTrackId: {TrackId}", Input.SpotifyTrackId);
             _logger.LogInformation("Input.Rating: {Rating}", Input.Rating);
+            _logger.LogInformation("Input.Comment: '{Comment}'", Input.Comment ?? "(null)");
+            _logger.LogInformation("Input.Comment length: {Length}", Input.Comment?.Length ?? 0);
             _logger.LogInformation("Input.TrackName: {Track}", Input.TrackName);
             _logger.LogInformation("Input.ArtistName: {Artist}", Input.ArtistName);
-            _logger.LogInformation("ModelState.IsValid: {Valid}", ModelState.IsValid);
+            _logger.LogInformation("ModelState.IsValid (before validate): {Valid}", ModelState.IsValid);
+
+            // Re-validate the Input model now that we've populated fallback values
+            ModelState.Clear();
+            TryValidateModel(Input);
+            _logger.LogInformation("ModelState.IsValid (after validate): {Valid}", ModelState.IsValid);
 
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("ModelState invalid when posting review. Errors:");
+                var errorMessages = new List<string>();
                 foreach (var modelState in ModelState.Values)
                 {
                     foreach (var error in modelState.Errors)
                     {
                         _logger.LogWarning("  Error: {ErrorMessage}", error.ErrorMessage);
+                        errorMessages.Add(error.ErrorMessage);
                     }
                 }
 
+                ErrorMessage = $"Validation failed: {string.Join("; ", errorMessages)}";
                 ShowCreateForm = true;
                 Reviews = await _context.Reviews
                     .Include(r => r.User)
                     .OrderByDescending(r => r.CreatedAt)
                     .ToListAsync();
+                
+                // If we were editing a review, reload it so the form shows the existing data
+                if (Input.ReviewId.HasValue)
+                {
+                    EditingReview = await _context.Reviews
+                        .FirstOrDefaultAsync(r => r.ReviewId == Input.ReviewId.Value && r.UserId == user.Id);
+                    _logger.LogInformation("Reloaded EditingReview for failed validation: {ReviewId}", Input.ReviewId);
+                }
+                
                 await LoadSpotifyTracksAsync(user);
                 return Page();
             }
 
+            _logger.LogInformation("=== Checking if create or update ===");
+            _logger.LogInformation("Input.ReviewId.HasValue: {HasValue}", Input.ReviewId.HasValue);
+            _logger.LogInformation("Input.ReviewId value: {Value}", Input.ReviewId);
+            
             if (Input.ReviewId.HasValue)
             {
-                _logger.LogInformation("Attempting to update review with ID: {ReviewId}", Input.ReviewId.Value);
+                _logger.LogInformation("*** TAKING UPDATE PATH *** Attempting to update review with ID: {ReviewId}", Input.ReviewId.Value);
                 var existingReview = await _context.Reviews
                     .FirstOrDefaultAsync(r => r.ReviewId == Input.ReviewId.Value && r.UserId == user.Id);
 
@@ -358,6 +455,8 @@ namespace LetMusicConnectStrangers.Pages
                 existingReview.AlbumName = Input.AlbumName;
                 existingReview.AlbumImageUrl = Input.AlbumImageUrl;
                 existingReview.Rating = Input.Rating;
+                // Save comment (null when empty) so edits persist and existing reviews display comments
+                existingReview.Comment = string.IsNullOrWhiteSpace(Input.Comment) ? null : Input.Comment;
                 existingReview.UpdatedAt = DateTime.UtcNow;
                 
                 // Explicitly mark the entity as modified to ensure EF detects changes
@@ -365,6 +464,11 @@ namespace LetMusicConnectStrangers.Pages
 
                 var updated = await _context.SaveChangesAsync();
                 _logger.LogInformation("Updated review {Id}, SaveChanges returned {Count}", existingReview.ReviewId, updated);
+                
+                // Log the updated values for debugging
+                _logger.LogInformation("Review after save: TrackName={Track}, Rating={Rating}, Comment={Comment}", 
+                    existingReview.TrackName, existingReview.Rating, existingReview.Comment);
+                
                 if (updated <= 0)
                 {
                     ErrorMessage = "Unable to update review. Please try again.";
@@ -376,10 +480,18 @@ namespace LetMusicConnectStrangers.Pages
                     await LoadSpotifyTracksAsync(user);
                     return Page();
                 }
+                
+                _logger.LogInformation("Redirecting to Reviews page after successful update");
+                return RedirectToPage();
             }
             else
             {
-                _logger.LogInformation("Creating new review...");
+                _logger.LogInformation("*** TAKING CREATE PATH *** Creating new review...");
+                _logger.LogInformation("CREATE - SpotifyTrackId: {TrackId}", Input.SpotifyTrackId);
+                _logger.LogInformation("CREATE - TrackName: {TrackName}", Input.TrackName);
+                _logger.LogInformation("CREATE - ArtistName: {ArtistName}", Input.ArtistName);
+                _logger.LogInformation("CREATE - Rating: {Rating}", Input.Rating);
+                    
                     
                 var review = new Review
                 {
@@ -390,6 +502,7 @@ namespace LetMusicConnectStrangers.Pages
                     AlbumName = Input.AlbumName,
                     AlbumImageUrl = Input.AlbumImageUrl,
                     Rating = Input.Rating,
+                    Comment = string.IsNullOrWhiteSpace(Input.Comment) ? null : Input.Comment,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -470,7 +583,7 @@ namespace LetMusicConnectStrangers.Pages
             }
 
             // Populate the Input model so the form shows values
-            Input = new InputModel
+                    Input = new InputModel
             {
                 ReviewId = EditingReview.ReviewId,
                 SpotifyTrackId = EditingReview.SpotifyTrackId,
@@ -478,7 +591,8 @@ namespace LetMusicConnectStrangers.Pages
                 ArtistName = EditingReview.ArtistName,
                 AlbumName = EditingReview.AlbumName,
                 AlbumImageUrl = EditingReview.AlbumImageUrl,
-                Rating = EditingReview.Rating
+                        Rating = EditingReview.Rating,
+                        Comment = EditingReview.Comment ?? string.Empty
             };
 
             ShowCreateForm = true;
@@ -517,7 +631,7 @@ namespace LetMusicConnectStrangers.Pages
             }
 
             // Populate the Input model so the form shows values
-            Input = new InputModel
+                    Input = new InputModel
             {
                 ReviewId = EditingReview.ReviewId,
                 SpotifyTrackId = EditingReview.SpotifyTrackId,
@@ -525,7 +639,8 @@ namespace LetMusicConnectStrangers.Pages
                 ArtistName = EditingReview.ArtistName,
                 AlbumName = EditingReview.AlbumName,
                 AlbumImageUrl = EditingReview.AlbumImageUrl,
-                Rating = EditingReview.Rating
+                        Rating = EditingReview.Rating,
+                        Comment = EditingReview.Comment ?? string.Empty
             };
 
             ShowCreateForm = true;
