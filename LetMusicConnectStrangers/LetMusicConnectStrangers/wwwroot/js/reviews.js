@@ -364,7 +364,7 @@
         if (loadingIndicator) loadingIndicator.style.display = 'block';
         if (searchResultsList) searchResultsList.innerHTML = '';
         
-        // Perform AJAX search instead of form submission
+        // Perform AJAX search 
         fetch(`/Reviews?handler=SearchTracks&query=${encodeURIComponent(query)}`)
             .then(response => {
                 if (!response.ok) {
