@@ -351,24 +351,92 @@
     }
 
     function performSearch() {
-        const query = document.getElementById('searchInput')?.value.trim();
+        const searchInput = document.getElementById('searchInput');
+        const query = searchInput?.value.trim();
         if (!query) return;
         
-        console.log('Performing search for:', query);
+        console.log('Performing AJAX search for:', query);
         
-        // Create and submit search form
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = '?handler=Search';
+        // Show loading indicator
+        const loadingIndicator = document.getElementById('searchLoadingIndicator');
+        const searchResultsList = document.getElementById('searchResultsList');
         
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'SearchQuery';
-        input.value = query;
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        if (searchResultsList) searchResultsList.innerHTML = '';
         
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
+        // Perform AJAX search instead of form submission
+        fetch(`/Reviews?handler=SearchTracks&query=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                return response.json();
+            })
+            .then(tracks => {
+                console.log('Search completed, found', tracks.length, 'tracks');
+                
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                
+                if (tracks.length === 0) {
+                    searchResultsList.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i>
+                            <p>No results found for "${escapeHtml(query)}"</p>
+                            <small>Try a different search term</small>
+                        </div>`;
+                } else {
+                    // Build results HTML
+                    let resultsHtml = `
+                        <div class="alert alert-success small mb-2">
+                            Found ${tracks.length} results for "${escapeHtml(query)}"
+                        </div>`;
+                    
+                    tracks.forEach(track => {
+                        resultsHtml += `
+                            <div class="track-item" 
+                                 data-track-id="${escapeHtml(track.spotifyId)}" 
+                                 data-track-name="${escapeHtml(track.name)}" 
+                                 data-track-artist="${escapeHtml(track.artist)}" 
+                                 data-track-album="${escapeHtml(track.album)}" 
+                                 data-track-image="${escapeHtml(track.imageUrl || '')}"
+                                 tabindex="0" role="button">`;
+                        
+                        if (track.imageUrl) {
+                            resultsHtml += `<img src="${escapeHtml(track.imageUrl)}" class="track-img me-3" alt="" />`;
+                        } else {
+                            resultsHtml += `<div class="track-placeholder me-3"><i class="bi bi-music-note text-white"></i></div>`;
+                        }
+                        
+                        resultsHtml += `
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="fw-semibold text-truncate">${escapeHtml(track.name)}</div>
+                                    <small class="text-muted text-truncate d-block">${escapeHtml(track.artist)}</small>
+                                </div>
+                            </div>`;
+                    });
+                    
+                    searchResultsList.innerHTML = resultsHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (searchResultsList) {
+                    searchResultsList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Search failed. Please try again.
+                        </div>`;
+                }
+            });
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // Initial State
