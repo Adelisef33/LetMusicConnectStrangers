@@ -14,42 +14,112 @@
 - Primary Actor: User
 - Goal: Create an account and authenticate to access the platform
 
+** Implementation Evidence **
+- Entry point: (https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Areas/Identity/Pages/Account/Login.cshtml.cs#L19-L141)
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Areas/Identity/Pages/Account/ExternalLogin.cshtml.cs#L24-L298
+
+** Unit Test Evidence **
+- Not Implemented (Yet)
+
 ### UC2: Link Spotify Account
 - Primary Actor: User
 - Goal: Connect Spotify account to enable music data integration and profile features
+
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/SpotifyProfile.cshtml.cs#L10-L65
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Models/ApplicationUser.cs#L1-L13
+  
+** Unit Test Evidence **
+- Not Implemented (Yet)
 
 ### UC3: Create Music Review
 - Primary Actor: User
 - Goal: Search for a track, rate it (1-5 stars), and optionally add a comment (max 300 words)
 
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews/Create.cshtml.cs#L14-L143
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Models/Review.cs#L7-L53    
+
+** Unit Test Evidence **
+- Test file: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers.Tests/Pages/ReviewsModelTests.cs#L20-L671
+- Covers success path: Searching for track, rating it, add a comment, and making sure all the required fields are selected
+
 ### UC4: View and Browse Reviews
 - Primary Actor: User
 - Goal: Browse, filter, sort, and paginate through music reviews from other users
+
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews.cshtml.cs#L16-L693
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Models/Review.cs#L7-L53
+
+** Unit Test Evidence **
+- Not Implemented (Yet)
 
 ### UC5: Edit/Update Review
 - Primary Actor: User
 - Goal: Modify rating or comment of an existing review
 
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews/Edit.cshtml.cs#L13-L99
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews/Edit.cshtml#L9-L137
+
+** Unit Test Evidence **
+- Not Implemented (Yet)  
+
 ### UC6: Delete Review
 - Primary Actor: User
 - Goal: Remove a previously created review
+
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews/Delete.cshtml.cs#L13-L57
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/Reviews/Delete.cshtml#L9-L139
+
+** Unit Test Evidence **
+- Not Implemented (Yet) 
 
 ### UC7: View Spotify Profile Data
 - Primary Actor: User
 - Goal: Display user's Spotify profile, recently played tracks, and top tracks
 
+** Implementation Evidence **
+- Entry point: Not implemented yet
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Pages/SpotifyProfile.cshtml.cs#L10-L65
+
+** Unit Test Evidence **
+- Not Implemented (Yet)
+
 ### UC8: Get Music Recommendations
 - Primary Actor: User
 - Goal: Generate personalized music recommendations based on listening history and preferences
+
+** Implementation Evidence **
+- Entry point: Not Implemented yet
+- Key collaborators (if applicable): N/A
+
+** Unit Test Evidence **
+- Not Implemented (Yet) 
 
 ### UC9: Search and Preview Tracks
 - Primary Actor: User
 - Goal: Search for music tracks and preview them before reviewing
 
+** Implementation Evidence **
+- Entry point: https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/wwwroot/js/reviews.js#L337-L433 
+- Key collaborators (if applicable): https://github.com/Adelisef33/LetMusicConnectStrangers/blob/28949b0608bad3de9faa54c88589d59ddada7ab5/LetMusicConnectStrangers/LetMusicConnectStrangers/Models/Track.cs#L6-L32
+
+** Unit Test Evidence **
+- Not Implemented (Yet)
+
 ### UC10: Moderate Content
 - Primary Actor: Admin
 - Goal: Manage users, moderate reviews, and view system logs
 
+** Implementation Evidence **
+- Entry point: Not implemented yet
+- Key collaborators (if applicable): N/A
+
+** Unit Test Evidence **
+- Not Implemented (Yet)
 
 
 ## Use Case Traceability
